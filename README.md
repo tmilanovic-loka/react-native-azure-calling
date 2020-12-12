@@ -15,7 +15,7 @@ import AzureCalling from "react-native-azure-calling";
 
 // ...
 
-const result = await AzureCalling.multiply(3, 7);
+const result = await AzureCalling.sendMessage("John Doe", "Hello World");
 ```
 
 ## Contributing
