@@ -42,26 +42,6 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getAllPermissions() {
-    Context context = getReactApplicationContext().getApplicationContext();
-    String[] requiredPermissions = new String[] {
-      Manifest.permission.RECORD_AUDIO,
-      Manifest.permission.CAMERA,
-      Manifest.permission.WRITE_EXTERNAL_STORAGE,
-      Manifest.permission.READ_PHONE_STATE
-    };
-    ArrayList<String> permissionsToAskFor = new ArrayList<>();
-    for (String permission : requiredPermissions) {
-      if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-        permissionsToAskFor.add(permission);
-      }
-    }
-    if (!permissionsToAskFor.isEmpty()) {
-      ActivityCompat.requestPermissions(getCurrentActivity(), permissionsToAskFor.toArray(new String[0]), 1);
-    }
-  }
-
-  @ReactMethod
   public void createAgent(String userToken) {
     Context context = getReactApplicationContext().getApplicationContext();
     try {
