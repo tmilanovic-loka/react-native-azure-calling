@@ -11,6 +11,7 @@ import {
   ButtonProps,
   ImageBackground,
   TextProps,
+  TouchableOpacityProps,
 } from 'react-native';
 import AzureCalling from 'react-native-azure-calling';
 import Config from '../config.json';
@@ -49,8 +50,13 @@ const getPermissions = async () => {
 
 const testCall = async () => {
   AzureCalling.createAgent(TOKEN);
-  AzureCalling.startCall('8:echo123');
+  AzureCalling.callACSUser(['8:echo123']);
+  // AzureCalling.startCall('+12368802054');
 };
+
+const hangUpCall = async () => {
+  AzureCalling.hangUpCall();
+}
 
 export default function App() {
   return (
@@ -89,6 +95,11 @@ export default function App() {
               <ButtonPrimary title="Test Library Binding" onPress={onPress} />
               <ButtonPrimary title="Get Permissions" onPress={getPermissions} />
               <ButtonPrimary title="Make Test Voice Call" onPress={testCall} />
+              <ButtonPrimary
+                style={{ backgroundColor: 'firebrick' }}
+                title="HangUp Call"
+                onPress={hangUpCall}
+              />
             </View>
           </View>
         </View>
@@ -126,15 +137,15 @@ const styles = StyleSheet.create({
   },
 });
 
-class ButtonPrimary extends React.Component<ButtonProps> {
-  constructor(props: ButtonProps) {
+class ButtonPrimary extends React.Component<any> {
+  constructor(props: any) {
     super(props);
   }
 
   render() {
     return (
       <TouchableOpacity
-        style={[styles.buttonDefault, styles.buttonPrimary]}
+        style={[styles.buttonDefault, styles.buttonPrimary, this.props.style]}
         onPress={this.props.onPress}
       >
         <Text style={styles.buttonText}>
