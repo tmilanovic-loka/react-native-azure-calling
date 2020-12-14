@@ -8,10 +8,9 @@ import {
   StatusBar,
   TouchableOpacity,
   Text,
-  ButtonProps,
   ImageBackground,
   TextProps,
-  TouchableOpacityProps,
+  TextInput,
 } from 'react-native';
 import AzureCalling from 'react-native-azure-calling';
 import Config from '../config.json';
@@ -20,10 +19,7 @@ const win = Dimensions.get('window');
 const TOKEN = Config.TOKEN;
 
 const onPress = async () => {
-  let result = await AzureCalling.sendMessage(
-    'John Doe',
-    'Sending a test message your way'
-  );
+  let result = await AzureCalling.ping('Anjul Garg');
   console.log(result);
 };
 
@@ -51,61 +47,107 @@ const getPermissions = async () => {
 const testCall = async () => {
   AzureCalling.createAgent(TOKEN);
   AzureCalling.callACSUser(['8:echo123']);
-  // AzureCalling.startCall('+12368802054');
 };
 
 const hangUpCall = async () => {
   AzureCalling.hangUpCall();
-}
+};
 
-export default function App() {
-  return (
-    <View style={{ backgroundColor: 'white', flex: 1 }}>
-      <ImageBackground
-        source={require('./assets/images/bg-gradient.png')}
-        style={{ flex: 1 }}
-      >
-        <StatusBar
-          backgroundColor={COLOR_GRADIENT('0.8')}
-          barStyle="dark-content"
-        />
+export default class App extends React.Component {
+  phoneNumber: string;
 
-        <View
-          style={{
-            alignSelf: 'center',
-            padding: 32,
-            width: win.width,
-          }}
+  constructor(props: object) {
+    super(props);
+    this.phoneNumber = '';
+  }
+
+  capturePhoneNumber(input: string) {
+    this.phoneNumber = input;
+    console.log(`Phone Number is ${this.phoneNumber}`);
+  }
+
+  async callPSTN() {
+    let from = '+18332143419';
+    let to = this.phoneNumber;
+    console.log(`Calling PSTN from ${from} to ${to}`);
+    AzureCalling.createAgent(TOKEN);
+    AzureCalling.callPSTN(from, to);
+  }
+
+  render() {
+    return (
+      <View style={{ backgroundColor: 'white', flex: 1 }}>
+        <ImageBackground
+          source={require('./assets/images/bg-gradient.png')}
+          style={{ flex: 1 }}
         >
-          <H1 style={{ textAlign: 'center', fontSize: 24 }}>
-            React Native Azure Calling
-          </H1>
-          <H1 style={{ textAlign: 'center', opacity: 0.5 }}>Example App</H1>
-        </View>
+          <StatusBar
+            backgroundColor={COLOR_GRADIENT('0.8')}
+            barStyle="dark-content"
+          />
 
-        <View style={{ marginLeft: 16, marginRight: 16, marginTop: 16 }}>
-          <View />
           <View
             style={{
-              width: win.width - 96,
               alignSelf: 'center',
+              padding: 32,
+              width: win.width,
             }}
           >
-            <View style={{ marginTop: 16, marginBottom: 8 }}>
-              <ButtonPrimary title="Test Library Binding" onPress={onPress} />
-              <ButtonPrimary title="Get Permissions" onPress={getPermissions} />
-              <ButtonPrimary title="Make Test Voice Call" onPress={testCall} />
-              <ButtonPrimary
-                style={{ backgroundColor: 'firebrick' }}
-                title="HangUp Call"
-                onPress={hangUpCall}
-              />
+            <H1 style={{ textAlign: 'center', fontSize: 24 }}>
+              React Native Azure Calling
+            </H1>
+            <H1 style={{ textAlign: 'center', opacity: 0.5 }}>Example App</H1>
+          </View>
+
+          <View style={{ marginLeft: 16, marginRight: 16, marginTop: 16 }}>
+            <View />
+            <View
+              style={{
+                width: win.width - 96,
+                alignSelf: 'center',
+              }}
+            >
+              <View style={{ marginTop: 16, marginBottom: 8 }}>
+                <ButtonPrimary title="Test Library Binding" onPress={onPress} />
+                <ButtonPrimary
+                  title="Get Permissions"
+                  onPress={getPermissions}
+                />
+                <ButtonPrimary
+                  title="Make Test Voice Call"
+                  onPress={testCall}
+                />
+
+                <View style={{ paddingBottom: 16 }} />
+
+                <TextInput
+                  placeholder="Phone Number"
+                  style={{
+                    borderBottomColor: '#aaa',
+                    borderBottomWidth: 1,
+                    textAlign: 'center',
+                  }}
+                  onChangeText={this.capturePhoneNumber.bind(this)}
+                />
+                <ButtonPrimary
+                  title="Make a Phone Call"
+                  onPress={this.callPSTN.bind(this)}
+                />
+
+                <View style={{ paddingBottom: 16 }} />
+
+                <ButtonPrimary
+                  style={{ backgroundColor: 'firebrick' }}
+                  title="HangUp Call"
+                  onPress={hangUpCall}
+                />
+              </View>
             </View>
           </View>
-        </View>
-      </ImageBackground>
-    </View>
-  );
+        </ImageBackground>
+      </View>
+    );
+  }
 }
 
 const COLOR_PRIMARY = '#399c7d';

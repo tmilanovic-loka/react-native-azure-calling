@@ -1,13 +1,9 @@
 package com.reactnativeazurecalling;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-
-import androidx.core.app.ActivityCompat;
 
 import com.azure.android.communication.common.CommunicationIdentifier;
 import com.azure.android.communication.common.CommunicationUser;
@@ -31,8 +27,9 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class AzureCallingModule extends ReactContextBaseJavaModule {
@@ -50,9 +47,8 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void sendMessage(String to, String message, Promise promise) {
-    String result = "`sendMessage` called in Java code with `to` : " + to
-      + " and `message` : " + message;
+  public void ping(String from, Promise promise) {
+    String result = "`ping` received from " + from;
     Log.d("JavaLog", result);
     promise.resolve(result);
   }
@@ -83,11 +79,10 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void hangUpCall() {
-    CallState state = call.getState();
-    Log.d("CALL STATE", state.toString());
-    if (state.toString().equals("Connecting") || state.toString().equals("Ringing")
-      || state.toString().equals("EarlyMedia") || state.toString().equals("Connected")
-      || state.toString().equals("Hold")) {
+    CallState callState = call.getState();
+    List<String> validStates = Arrays.asList("Connecting", "Ringing", "EarlyMedia", "Connected", "Hold");
+    Log.d("CALL STATE", callState.toString());
+    if (validStates.contains(callState.toString())) {
       HangupOptions options = new HangupOptions();
       call.hangup(options);
       Log.d("TRYING TO HANGUP", "hangupCall()");
@@ -96,16 +91,14 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
 
 
   @ReactMethod
-  public void startCall(String to) {
+  public void callPSTN(String from, String to) {
     Context context = getReactApplicationContext().getApplicationContext();
-    PhoneNumber callerPhone = new PhoneNumber("+18332143419");
+    PhoneNumber callerPhone = new PhoneNumber(from);
     StartCallOptions options = new StartCallOptions();
     options.setAlternateCallerId(callerPhone);
-    options.setVideoOptions(new VideoOptions(null));
-    CommunicationUser acsUser = new CommunicationUser(to);
+//    options.setVideoOptions(new VideoOptions(null));
     PhoneNumber number = new PhoneNumber(to);
-    CommunicationIdentifier participants[] = new CommunicationIdentifier[] {number};
-    callAgent.call(context, new PhoneNumber[] {number}, options);
+    call = callAgent.call(context, new PhoneNumber[] {number}, options);
   }
 
   @ReactMethod

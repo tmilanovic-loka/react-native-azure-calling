@@ -1,10 +1,10 @@
 import { NativeModules } from 'react-native';
 
 type AzureCallingType = {
-  sendMessage(to: string, message: string): Promise<string>;
+  ping(from: string): Promise<string>;
   createAgent(token: string): Promise<null>;
-  startCall(to: string): Promise<null>;
   callACSUser(to: Array<String>): Promise<null>;
+  callPSTN(from: string, to: string): Promise<null>;
   hangUpCall(): Promise<null>;
 };
 
