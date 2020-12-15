@@ -46,7 +46,7 @@ const getPermissions = async () => {
 
 const testCall = async () => {
   AzureCalling.createAgent(TOKEN);
-  AzureCalling.callACSUser(['8:echo123']);
+  AzureCalling.callACSUsers(['8:echo123']);
 };
 
 const hangUpCall = async () => {
