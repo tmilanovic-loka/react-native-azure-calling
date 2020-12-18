@@ -41,6 +41,16 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
   CallAgent callAgent = null;
   Call call = null;
 
+  PropertyChangedListener callStateChangeListener = new PropertyChangedListener() {
+    @Override
+    public void onPropertyChanged(PropertyChangedEvent args) {
+      String callState = call.getState().toString();
+      WritableMap params = Arguments.createMap();
+      params.putString("callState", callState);
+      sendEvent(getReactApplicationContext(), "CALL_STATE_CHANGED", params);
+    }
+  };
+
   AzureCallingModule(ReactApplicationContext context) {
     super(context);
   }
@@ -59,17 +69,6 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
       .emit(eventName, params);
   }
-
-  PropertyChangedListener callStateChangeListener = new PropertyChangedListener() {
-    @Override
-    public void onPropertyChanged(PropertyChangedEvent args) {
-      String callState = call.getState().toString();
-      Log.d("Event", "The call state has changed to: " + callState);
-      WritableMap params = Arguments.createMap();
-      params.putString("callState", callState);
-      sendEvent(getReactApplicationContext(), "CALL_STATE_CHANGED", params);
-    }
-  };
 
   @ReactMethod
   public void ping(String from, Promise promise) {
@@ -106,6 +105,7 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     }
     StartCallOptions options = new StartCallOptions();
     call = callAgent.call(getContext(), participants, options);
+    call.addOnCallStateChangedListener(callStateChangeListener);
     promise.resolve(call.getCallId());
   }
 
@@ -153,8 +153,6 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     if (VALID_STATES.contains(callState.toString())) {
       HangupOptions options = new HangupOptions();
       call.hangup(options);
-      call.removeOnCallStateChangedListener(callStateChangeListener);
-      Log.d("TRYING TO HANGUP", "hangupCall()");
       promise.resolve(null);
     }
   }

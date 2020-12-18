@@ -13,6 +13,7 @@ import {
   TextInput,
   NativeEventEmitter,
   NativeModules,
+  EmitterSubscription,
 } from 'react-native';
 import AzureCalling from 'react-native-azure-calling';
 import Config from '../config.json';
@@ -57,7 +58,7 @@ const hangUpCall = async () => {
 
 export default class App extends React.Component {
   phoneNumber: string;
-  eventListener: any;
+  eventListener!: EmitterSubscription;
 
   constructor(props: object) {
     super(props);
@@ -65,11 +66,10 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    const eventEmitter = new NativeEventEmitter(NativeModules.AzureCalling);
-    this.eventListener = eventEmitter.addListener(
+    this.eventListener = AzureCalling.addEventListener(
       'CALL_STATE_CHANGED',
       (event) => {
-        console.log(event.eventProperty);
+        console.log('EVENT', event.callState);
       }
     );
   }
