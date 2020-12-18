@@ -11,8 +11,6 @@ import {
   ImageBackground,
   TextProps,
   TextInput,
-  NativeEventEmitter,
-  NativeModules,
   EmitterSubscription,
 } from 'react-native';
 import AzureCalling from 'react-native-azure-calling';
@@ -69,6 +67,10 @@ export default class App extends React.Component {
     this.callStateListener = AzureCalling.addCallStateListener((event) => {
       console.log('EVENT', event.callState);
     });
+  }
+
+  componentWillUnmount() {
+    this.callStateListener.remove();
   }
 
   capturePhoneNumber(input: string) {
