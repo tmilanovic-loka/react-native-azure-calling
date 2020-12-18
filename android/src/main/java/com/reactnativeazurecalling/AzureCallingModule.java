@@ -3,6 +3,8 @@ package com.reactnativeazurecalling;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.azure.android.communication.common.CommunicationIdentifier;
 import com.azure.android.communication.common.CommunicationUser;
 import com.azure.android.communication.common.CommunicationUserCredential;
@@ -13,14 +15,23 @@ import com.azure.communication.calling.CallClient;
 import com.azure.communication.calling.CallEndReason;
 import com.azure.communication.calling.CallState;
 import com.azure.communication.calling.HangupOptions;
+import com.azure.communication.calling.LocalVideoStream;
+import com.azure.communication.calling.PropertyChangedEvent;
+import com.azure.communication.calling.PropertyChangedListener;
+import com.azure.communication.calling.Renderer;
+import com.azure.communication.calling.RenderingOptions;
+import com.azure.communication.calling.ScalingMode;
 import com.azure.communication.calling.StartCallOptions;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.reactnativeazurecalling.exceptions.CallAgentNotInitializedException;
 import com.reactnativeazurecalling.exceptions.CallNotActiveException;
 
@@ -46,6 +57,23 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
   private Context getContext() {
     return getReactApplicationContext().getApplicationContext();
   }
+
+  private void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
+    reactContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+      .emit(eventName, params);
+  }
+
+  PropertyChangedListener callStateChangeListener = new PropertyChangedListener() {
+    @Override
+    public void onPropertyChanged(PropertyChangedEvent args) {
+      String callState = call.getState().toString();
+      Log.d("Event", "The call state has changed to: " + callState);
+      WritableMap params = Arguments.createMap();
+      params.putString("callState", callState);
+      sendEvent(getReactApplicationContext(), "CALL_STATE_CHANGED", params);
+    }
+  };
 
   @ReactMethod
   public void ping(String from, Promise promise) {
@@ -77,7 +105,8 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     ArrayList<Object> userStrings = users.toArrayList();
     CommunicationIdentifier participants[] = new CommunicationIdentifier[userStrings.size()];
     for (int i = 0; i < userStrings.size(); i++) {
-      participants[i] = new CommunicationUser(userStrings.get(i).toString());;
+      participants[i] = new CommunicationUser(userStrings.get(i).toString());
+      ;
     }
     StartCallOptions options = new StartCallOptions();
     call = callAgent.call(getContext(), participants, options);
@@ -92,7 +121,7 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     }
     StartCallOptions options = new StartCallOptions();
     options.setAlternateCallerId(new PhoneNumber(from));
-    call = callAgent.call(getContext(), new PhoneNumber[] { new PhoneNumber(to) }, options);
+    call = callAgent.call(getContext(), new PhoneNumber[]{new PhoneNumber(to)}, options);
     promise.resolve(call.getCallId());
   }
 
@@ -127,6 +156,8 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     if (VALID_STATES.contains(callState.toString())) {
       HangupOptions options = new HangupOptions();
       call.hangup(options);
+      call.removeOnCallStateChangedListener(callStateChangeListener);
+      Log.d("TRYING TO HANGUP", "hangupCall()");
       promise.resolve(null);
     }
   }
@@ -187,5 +218,16 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
       return;
     }
     promise.resolve(call.getCallerId().toString());
+  }
+
+  @ReactMethod
+  public void callPSTN(String from, String to) {
+    Context context = getReactApplicationContext().getApplicationContext();
+    PhoneNumber callerPhone = new PhoneNumber(from);
+    StartCallOptions options = new StartCallOptions();
+    options.setAlternateCallerId(callerPhone);
+    PhoneNumber number = new PhoneNumber(to);
+    call = callAgent.call(context, new PhoneNumber[]{number}, options);
+    call.addOnCallStateChangedListener(callStateChangeListener);
   }
 }
