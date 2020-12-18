@@ -58,7 +58,7 @@ const hangUpCall = async () => {
 
 export default class App extends React.Component {
   phoneNumber: string;
-  eventListener!: EmitterSubscription;
+  callStateListener!: EmitterSubscription;
 
   constructor(props: object) {
     super(props);
@@ -66,12 +66,9 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    this.eventListener = AzureCalling.addEventListener(
-      'CALL_STATE_CHANGED',
-      (event) => {
-        console.log('EVENT', event.callState);
-      }
-    );
+    this.callStateListener = AzureCalling.addCallStateListener((event) => {
+      console.log('EVENT', event.callState);
+    });
   }
 
   capturePhoneNumber(input: string) {
