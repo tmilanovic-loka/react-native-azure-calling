@@ -118,6 +118,7 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     StartCallOptions options = new StartCallOptions();
     options.setAlternateCallerId(new PhoneNumber(from));
     call = callAgent.call(getContext(), new PhoneNumber[]{new PhoneNumber(to)}, options);
+    call.addOnCallStateChangedListener(callStateChangeListener);
     promise.resolve(call.getCallId());
   }
 
@@ -214,16 +215,5 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
       return;
     }
     promise.resolve(call.getCallerId().toString());
-  }
-
-  @ReactMethod
-  public void callPSTN(String from, String to) {
-    Context context = getReactApplicationContext().getApplicationContext();
-    PhoneNumber callerPhone = new PhoneNumber(from);
-    StartCallOptions options = new StartCallOptions();
-    options.setAlternateCallerId(callerPhone);
-    PhoneNumber number = new PhoneNumber(to);
-    call = callAgent.call(context, new PhoneNumber[]{number}, options);
-    call.addOnCallStateChangedListener(callStateChangeListener);
   }
 }
