@@ -47,12 +47,24 @@ const getPermissions = async () => {
 
 const testCall = async () => {
   AzureCalling.createAgent(TOKEN);
-  AzureCalling.callACSUsers(['8:echo123']);
+  AzureCalling.callACSUsers(['8:orgid:a02b483d-8728-4fbd-8e10-d2ba00d25cc8']); // Fungrou5, fungrou2
 };
 
 const hangUpCall = async () => {
   AzureCalling.hangUpCall();
 };
+
+const addParticipant = async () => {
+    AzureCalling.addParticipant('8:orgid:151f8034-b16e-410c-b559-a4cba38a9842');
+}
+
+const startRecording = async () => {
+  AzureCalling.startRecording();
+}
+
+const stopRecording = async () => {
+  AzureCalling.stopRecording();
+}
 
 export default class App extends React.Component {
   phoneNumber: string;
@@ -128,6 +140,21 @@ export default class App extends React.Component {
                 <ButtonPrimary
                   title="Make Test Voice Call"
                   onPress={testCall}
+                />
+
+                <ButtonPrimary
+                  title="Add participant"
+                  onPress={addParticipant}
+                />
+
+                <ButtonPrimary
+                  title="Start recording"
+                  onPress={startRecording}
+                />
+
+                <ButtonPrimary
+                  title="Stop recording"
+                  onPress={stopRecording}
                 />
 
                 <View style={{ paddingBottom: 16 }} />

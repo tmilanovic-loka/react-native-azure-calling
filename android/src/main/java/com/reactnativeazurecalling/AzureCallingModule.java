@@ -5,6 +5,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.azure.android.communication.calling.IncomingCallListener;
 import com.azure.android.communication.common.CommunicationIdentifier;
 import com.azure.android.communication.common.CommunicationUserIdentifier;
 import com.azure.android.communication.common.CommunicationTokenCredential;
@@ -79,6 +80,13 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     promise.resolve(result);
   }
 
+  /**private class MyIncomingCallListener extends IncomingCallListener {
+    public MyIncomingCallListener // MAKE CONSTRUCTOR THEN TEST INCOMING CALL
+    public void onIncomingCall(IncomingCall incomingCall) {
+      Log.d("JavaLog", "INCOMING CALL DETECTED!");
+    }
+  }**/
+
   @ReactMethod
   public void createAgent(String userToken, Promise promise) {
     Context context = getReactApplicationContext().getApplicationContext();
@@ -112,6 +120,37 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     call = callAgent.startCall(getContext(), participants);
     call.addOnStateChangedListener(callStateChangeListener);
     promise.resolve(call.getId());
+  }
+
+  @ReactMethod
+  public void startRecording(Promise promise) {
+    
+  }
+
+  @ReactMethod
+  public void stopRecording(Promise promise) {
+    
+  }
+
+  @ReactMethod
+  public void addParticipant(String userID, Promise promise) {
+    if (call == null) {
+      Log.d("JavaLog", "ADD PARTICIPANT: CALL INACTIVE");
+      promise.reject(new CallNotActiveException());
+      return;
+    }
+    Log.d("JavaLog", "ADDING: " + userID);
+    CommunicationIdentifier participant = new CommunicationUserIdentifier(userID);
+    if (participant == null) {
+      Log.d("JavaLog", "FAILED TO ADD PARTICIPANT");
+    }
+    
+    RemoteParticipant addedParticipant = call.addParticipant(participant);
+    if (addedParticipant == null) {
+      Log.d("JavaLog", "ADDED PARTICIPANT IS NULL");
+    }
+    Log.d("JavaLog", "Participant name: " + addedParticipant.getDisplayName());
+    Log.d("JavaLog", "Participant state: " + addedParticipant.getState());
   }
 
   @ReactMethod
