@@ -6,6 +6,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.azure.android.communication.calling.IncomingCallListener;
+import com.azure.android.communication.calling.RemoteParticipant;
+import com.azure.android.communication.calling.IncomingCall;
 import com.azure.android.communication.common.CommunicationIdentifier;
 import com.azure.android.communication.common.CommunicationUserIdentifier;
 import com.azure.android.communication.common.CommunicationTokenCredential;
@@ -80,12 +82,17 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     promise.resolve(result);
   }
 
-  /**private class MyIncomingCallListener extends IncomingCallListener {
-    public MyIncomingCallListener // MAKE CONSTRUCTOR THEN TEST INCOMING CALL
+  private class MyIncomingCallListener implements IncomingCallListener {
+    public MyIncomingCallListener() {
+      super();
+      Log.d("JavaLog", "I HATH BEEN MADE");
+    }
     public void onIncomingCall(IncomingCall incomingCall) {
       Log.d("JavaLog", "INCOMING CALL DETECTED!");
+      Context context = getReactApplicationContext().getApplicationContext();
+      incomingCall.accept(context);
     }
-  }**/
+  }
 
   @ReactMethod
   public void createAgent(String userToken, Promise promise) {
@@ -98,6 +105,8 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
       if (callAgent == null) {
         callAgent = callClient.createCallAgent(context, credential).get();
       }
+      MyIncomingCallListener myIncomingCallListener = new MyIncomingCallListener();
+      callAgent.addOnIncomingCallListener(myIncomingCallListener);
       promise.resolve(null);
     } catch (ExecutionException e) {
       promise.reject(e);

@@ -19,6 +19,8 @@ import Config from '../config.json';
 const win = Dimensions.get('window');
 const TOKEN = Config.TOKEN;
 
+AzureCalling.createAgent(TOKEN);
+
 const onPress = async () => {
   let result = await AzureCalling.ping('Anjul Garg');
   console.log(result);
@@ -55,16 +57,16 @@ const hangUpCall = async () => {
 };
 
 const addParticipant = async () => {
-    AzureCalling.addParticipant('8:orgid:151f8034-b16e-410c-b559-a4cba38a9842');
-}
+  AzureCalling.addParticipant('8:orgid:151f8034-b16e-410c-b559-a4cba38a9842');
+};
 
 const startRecording = async () => {
   AzureCalling.startRecording();
-}
+};
 
 const stopRecording = async () => {
   AzureCalling.stopRecording();
-}
+};
 
 export default class App extends React.Component {
   phoneNumber: string;
@@ -152,10 +154,7 @@ export default class App extends React.Component {
                   onPress={startRecording}
                 />
 
-                <ButtonPrimary
-                  title="Stop recording"
-                  onPress={stopRecording}
-                />
+                <ButtonPrimary title="Stop recording" onPress={stopRecording} />
 
                 <View style={{ paddingBottom: 16 }} />
 
