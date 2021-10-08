@@ -13,6 +13,7 @@ type AzureCallingType = {
   addParticipant(userID: string): Promise<null>;
   startRecording(): Promise<null>;
   stopRecording(): Promise<null>;
+  joinMeeting(): Promise<null>;
   callPSTN(from: string, to: string): Promise<null>;
   hangUpCall(): Promise<null>;
   addCallStateListener: IaddCallStateListener;

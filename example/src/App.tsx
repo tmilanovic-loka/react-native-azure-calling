@@ -68,6 +68,10 @@ const stopRecording = async () => {
   AzureCalling.stopRecording();
 };
 
+const joinMeeting = async () => {
+  AzureCalling.joinMeeting("https://teams.microsoft.com/l/meetup-join/19%3ameeting_YzFmYWNiMTEtZjZlYy00Zjg1LWI0ZTctMzQ1YWQyNTk4ZDk1%40thread.v2/0?context=%7b%22Tid%22%3a%226351d6f0-1748-470f-9e21-3857bd0557a5%22%2c%22Oid%22%3a%223c064d74-3b24-4c7a-a204-ca08c3e4dbea%22%7d");
+};
+
 export default class App extends React.Component {
   phoneNumber: string;
   callStateListener!: EmitterSubscription;
@@ -147,6 +151,11 @@ export default class App extends React.Component {
                 <ButtonPrimary
                   title="Add participant"
                   onPress={addParticipant}
+                />
+
+                <ButtonPrimary
+                  title="Join meeting (hardcoded url)"
+                  onPress={joinMeeting}
                 />
 
                 <ButtonPrimary

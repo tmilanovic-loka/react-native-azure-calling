@@ -19,9 +19,11 @@ import com.azure.android.communication.calling.CallEndReason;
 import com.azure.android.communication.calling.CallState;
 import com.azure.android.communication.calling.CallDirection;
 import com.azure.android.communication.calling.HangUpOptions;
+import com.azure.android.communication.calling.JoinCallOptions;
 import com.azure.android.communication.calling.PropertyChangedEvent;
 import com.azure.android.communication.calling.PropertyChangedListener;
 import com.azure.android.communication.calling.StartCallOptions;
+import com.azure.android.communication.calling.TeamsMeetingLinkLocator;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -113,6 +115,21 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     } catch (InterruptedException e) {
       promise.reject(e);
     }
+  }
+
+  @ReactMethod
+  public void joinMeeting(String meetingUrl, Promise promise) {
+    if (callAgent == null) {
+      promise.reject(new CallAgentNotInitializedException());
+      return;
+    }
+    JoinCallOptions options = new JoinCallOptions();
+    TeamsMeetingLinkLocator teamsMeetingLinkLocator = new TeamsMeetingLinkLocator(meetingUrl);
+    call = agent.join(
+            getContext(),
+            teamsMeetingLinkLocator,
+            options);
+    promise.resolve(null);
   }
 
   @ReactMethod
