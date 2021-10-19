@@ -98,7 +98,7 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void createAgent(String userToken, Promise promise) {
-    Context context = getReactApplicationContext().getApplicationContext();
+    Context context = getContext();
     CommunicationTokenCredential credential = new CommunicationTokenCredential(userToken);
     try {
       if (callClient == null) {
@@ -123,12 +123,15 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
       promise.reject(new CallAgentNotInitializedException());
       return;
     }
+    Log.d("JavaLog", "Join meeting: " + meetingUrl);
     JoinCallOptions options = new JoinCallOptions();
     TeamsMeetingLinkLocator teamsMeetingLinkLocator = new TeamsMeetingLinkLocator(meetingUrl);
-    call = agent.join(
+    call = callAgent.join(
             getContext(),
             teamsMeetingLinkLocator,
             options);
+    Log.d("JavaLog", "Meeting callID: " + call.getId());
+    call.addOnStateChangedListener(callStateChangeListener);
     promise.resolve(null);
   }
 

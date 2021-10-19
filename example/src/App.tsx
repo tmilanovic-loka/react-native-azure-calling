@@ -69,7 +69,17 @@ const stopRecording = async () => {
 };
 
 const joinMeeting = async () => {
-  AzureCalling.joinMeeting("https://teams.microsoft.com/l/meetup-join/19%3ameeting_YzFmYWNiMTEtZjZlYy00Zjg1LWI0ZTctMzQ1YWQyNTk4ZDk1%40thread.v2/0?context=%7b%22Tid%22%3a%226351d6f0-1748-470f-9e21-3857bd0557a5%22%2c%22Oid%22%3a%223c064d74-3b24-4c7a-a204-ca08c3e4dbea%22%7d");
+  AzureCalling.joinMeeting(
+    // Meeting
+    //'https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjVmMTRhOTYtMjc1OS00MjgxLThkYmQtNTE4NzQ2ZTdkZDc5%40thread.v2/0?context=%7b%22Tid%22%3a%226351d6f0'
+    //+'-1748-470f-9e21-3857bd0557a5%22%2c%22Oid%22%3a%223c064d74-3b24-4c7a-a204-ca08c3e4dbea%22%7d'
+    // Live Event Meeting
+    //'https://teams.microsoft.com/l/meetup-join/19%3ameeting_MDlhYTc5YjYtNmU1ZS00YzcyLTliMjUtOTZhNjk4ZjQwNTA5%40thread.v2/0?context=%7b%22Tid%22%3a%226351d6f0'
+    //+'-1748-470f-9e21-3857bd0557a5%22%2c%22Oid%22%3a%223c064d74-3b24-4c7a-a204-ca08c3e4dbea%22%2c%22IsBroadcastMeeting%22%3atrue%7d'
+    // Lobby Meeting
+    'https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZGI3NTJjZDYtNzQwNS00YzU4LWI3YjItM2VlMmRjNTFkMmY3%40thread.v2/0?context=%7b%22Tid%22%3a%226351d6f0' +
+      '-1748-470f-9e21-3857bd0557a5%22%2c%22Oid%22%3a%22151f8034-b16e-410c-b559-a4cba38a9842%22%7d'
+  );
 };
 
 export default class App extends React.Component {
