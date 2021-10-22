@@ -13,7 +13,7 @@ import {
   TextInput,
   EmitterSubscription,
 } from 'react-native';
-import AzureCalling from 'react-native-azure-calling';
+import AzureCalling, {LocalVideoView, RemoteVideoView} from 'react-native-azure-calling';
 import Config from '../config.json';
 
 const win = Dimensions.get('window');
@@ -47,7 +47,9 @@ const getPermissions = async () => {
 
 const testCall = async () => {
   AzureCalling.createAgent(TOKEN);
-  AzureCalling.callACSUsers(['8:echo123']);
+  let callId = await AzureCalling.callACSUsers(['8:orgid:a02b483d-8728-4fbd-8e10-d2ba00d25cc8']);
+  console.log('Got Call ID: ', callId);
+  //AzureCalling.callACSUsers(['8:echo123']);
 };
 
 const hangUpCall = async () => {
@@ -71,6 +73,11 @@ export default class App extends React.Component {
 
   componentWillUnmount() {
     this.callStateListener.remove();
+  }
+
+  reRender = () => {
+      this.forceUpdate();
+      console.log('Re-rendering');
   }
 
   capturePhoneNumber(input: string) {
@@ -111,6 +118,11 @@ export default class App extends React.Component {
             <H1 style={{ textAlign: 'center', opacity: 0.5 }}>Example App</H1>
           </View>
 
+          <View style={styles.videoContainer}>
+            <RemoteVideoView style={styles.remoteVideo} />
+            <LocalVideoView style={styles.localVideo} />
+          </View>
+
           <View style={{ marginLeft: 16, marginRight: 16, marginTop: 16 }}>
             <View />
             <View
@@ -129,7 +141,6 @@ export default class App extends React.Component {
                   title="Make Test Voice Call"
                   onPress={testCall}
                 />
-
                 <View style={{ paddingBottom: 16 }} />
 
                 <TextInput
@@ -188,6 +199,31 @@ const styles = StyleSheet.create({
   disabled: {
     backgroundColor: '#aaa',
     elevation: 0,
+  },
+  videoContainer: {
+    position: 'relative',
+    width: '100%',
+    height: '40%',
+    backgroundColor: 'rgb(25, 25, 25)'
+  },
+  noDisplay: {
+    display: 'none',
+    height: 0,
+    width: 0
+  },
+  localVideo: {
+    position: 'absolute',
+    width: '45%',
+    height: '50%',
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#258a23',
+    elevation: 1
+  },
+  remoteVideo: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#258a23',
   },
 });
 

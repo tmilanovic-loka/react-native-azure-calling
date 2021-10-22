@@ -12,7 +12,10 @@ import java.util.List;
 public class AzureCallingPackage implements ReactPackage {
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-    return Collections.emptyList();
+    List<ViewManager> viewManagers = new ArrayList<>();
+    viewManagers.add(new LocalVideoViewManager(reactContext));
+    viewManagers.add(new RemoteVideoViewManager(reactContext));
+    return viewManagers;
   }
 
   @Override

@@ -23,11 +23,10 @@ android {
   compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
   buildToolsVersion getExtOrDefault('buildToolsVersion')
   defaultConfig {
-    minSdkVersion 29
+    minSdkVersion 26
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
     versionCode 1
     versionName "1.0"
-
   }
 
   buildTypes {
@@ -118,5 +117,7 @@ repositories {
 dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
-  implementation 'com.azure.android:azure-communication-calling:1.2.0'
+  implementation "com.azure.android:azure-communication-common:1.0.1"
+  implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
+  //implementation 'com.azure.android:azure-communication-calling:1.2.0'
 }
