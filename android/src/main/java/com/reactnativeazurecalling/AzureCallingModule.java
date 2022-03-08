@@ -47,6 +47,7 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
   private CallAgent callAgent = null;
   private Call call = null;
   private LocalVideoStream localVideoStream = null;
+  private VideoStreamRenderer previewRenderer;
   private CustomLocalVideoStream customLocalVideoStream = null;
   private CompletableFuture<DeviceManager> deviceManagerCompletableFuture;
   private Map<CameraType, VideoDeviceInfo> availableCameras;  
@@ -155,23 +156,18 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     Log.d("JavaLog", result);
     promise.resolve(result);
   }
-
-  // Workaround for bug: 
-  // Android native UI components are not re-layout on dynamically added views https://github.com/facebook/react-native/issues/17968
-  private static void refreshViewChildrenLayout(View view) {
-    view.measure(
-      View.MeasureSpec.makeMeasureSpec(view.getMeasuredWidth(), View.MeasureSpec.EXACTLY),
-      View.MeasureSpec.makeMeasureSpec(view.getMeasuredHeight(), View.MeasureSpec.EXACTLY));
-    view.layout(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
-  }
   
   private void addLocalVideoStream() {
     UiThreadUtil.runOnUiThread(() -> {
       if (localVideoStream != null) {
-        VideoStreamRenderer renderer = new VideoStreamRenderer(localVideoStream, getContext());
-        LinearLayout parentView = (LinearLayout) LocalVideoViewManager.GetView();      
-        parentView.addView(renderer.createView(new CreateViewOptions(ScalingMode.CROP)));
-        refreshViewChildrenLayout(parentView);
+        if (previewRenderer != null) {
+          previewRenderer.dispose();
+          previewRenderer = null;
+        }
+        previewRenderer = new VideoStreamRenderer(localVideoStream, getContext());
+        LocalVideoView parentView = (LocalVideoView) LocalVideoViewManager.GetView();
+        parentView.removeAllViews();
+        parentView.addView(previewRenderer.createView(new CreateViewOptions(ScalingMode.CROP)));
         Log.i("Native/VideoEvent", "Added localVideoStream");
       }
     });
@@ -179,10 +175,9 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
 
   private void addRemoteVideoStream(RemoteVideoStream remoteStream) {    
     UiThreadUtil.runOnUiThread(() -> {
-      VideoStreamRenderer renderer = new VideoStreamRenderer(remoteStream, getContext());
-      LinearLayout parentView = (LinearLayout) RemoteVideoViewManager.GetView();
-      parentView.addView(renderer.createView(new CreateViewOptions(ScalingMode.CROP)));
-      refreshViewChildrenLayout(parentView);
+      // VideoStreamRenderer renderer = new VideoStreamRenderer(remoteStream, getContext());
+      // LinearLayout parentView = (LinearLayout) RemoteVideoViewManager.GetView();
+      // parentView.addView(renderer.createView(new CreateViewOptions(ScalingMode.CROP)));
       Log.i("Native/VideoEvent", "Added remoteVideoStream");
     });
   }
@@ -298,13 +293,9 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
       promise.reject(new CallNotActiveException());
       return;
     }
-    CallState callState = call.getState();
-    List<String> VALID_STATES = Arrays.asList("Connecting", "Ringing", "EarlyMedia", "Connected", "LocalHold", "RemoteHold");
-    if (VALID_STATES.contains(callState.toString())) {
-      HangUpOptions options = new HangUpOptions();
-      call.hangUp(options);
-      promise.resolve(null);
-    }
+    HangUpOptions options = new HangUpOptions();
+    call.hangUp(options);
+    promise.resolve(null);
   }
 
   @ReactMethod

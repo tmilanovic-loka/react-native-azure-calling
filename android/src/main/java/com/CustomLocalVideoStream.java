@@ -52,14 +52,6 @@ public class CustomLocalVideoStream {
     format1.setFramesPerSecond(desiredFps);
     format1.setStride1(formatWidth * 4);
 
-    /*VideoFormat format2 = new VideoFormat();
-    format2.setWidth(formatWidth);
-    format2.setHeight(formatHeight);
-    format2.setPixelFormat(PixelFormat.RGBA);
-    format2.setMediaFrameKind(MediaFrameKind.VIDEO_HARDWARE);
-    format2.setFramesPerSecond(desiredFps);
-    format2.setStride1(formatHeight * 4);*/
-
     sendingVideoFrame = false;
     helperThread = new HandlerThread("SendFrame");
     helperThread.start();
@@ -119,21 +111,6 @@ public class CustomLocalVideoStream {
           Log.i("Native/VideoEvent", "Allocated buffer with size: " + bufferSize);
 
           while (sendingVideoFrame) {
-           // byte r = (byte)rand.nextInt(256);
-           // byte g = (byte)rand.nextInt(256);
-            //byte b = (byte)rand.nextInt(256);
-            //outVideoBuffer.rewind();
-
-            /*for (int y = 0; y < h; ++y) {
-              for (int x = 0; x < w * 4; x += 4)
-              {
-                outVideoBuffer.put((w * 4 * y) + x, (byte)(y % b)); //b
-                outVideoBuffer.put((w * 4 * y) + x + 1, (byte)(y % g)); //g
-                outVideoBuffer.put((w * 4 * y) + x + 2, (byte)(y % r)); //r
-                outVideoBuffer.put((w * 4 * y) + x + 3, (byte)0);
-              }
-            }*/
-
             try {
               int timeStamp = mediaFrameSender.getTimestamp();
               Log.i("Native/VideoEvent", "Sending frame in state: " + mediaFrameSender.getRunningState());
