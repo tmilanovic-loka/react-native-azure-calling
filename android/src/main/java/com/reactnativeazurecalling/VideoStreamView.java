@@ -6,11 +6,11 @@ import android.widget.RelativeLayout;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.bridge.ReactApplicationContext;
 
-public class LocalVideoView extends RelativeLayout {
+public class VideoStreamView extends RelativeLayout {
     private final ThemedReactContext context;
     private final ReactApplicationContext applicationContext;
 
-    public LocalVideoView(ThemedReactContext context, ReactApplicationContext applicationContext) {
+    public VideoStreamView(ThemedReactContext context, ReactApplicationContext applicationContext) {
         super(context);
         this.context = context;
         this.applicationContext = applicationContext;

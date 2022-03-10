@@ -9,13 +9,13 @@ import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
-public class LocalVideoViewManager extends ViewGroupManager<LocalVideoView> {
+public class LocalVideoViewManager extends ViewGroupManager<VideoStreamView> {
   public static final String REACT_CLASS = "LocalVideoView";
 
   private ReactApplicationContext applicationContext;
-  private static LocalVideoView view = null;
+  private static VideoStreamView view = null;
   
-  public static LocalVideoView GetView()
+  public static VideoStreamView GetView()
   {
     return view;
   }
@@ -31,9 +31,9 @@ public class LocalVideoViewManager extends ViewGroupManager<LocalVideoView> {
   }
 
   @Override
-  protected LocalVideoView createViewInstance(ThemedReactContext context)
+  protected VideoStreamView createViewInstance(ThemedReactContext context)
   {
-    view = new LocalVideoView(context, applicationContext);
+    view = new VideoStreamView(context, applicationContext);
     return view;
   }
 

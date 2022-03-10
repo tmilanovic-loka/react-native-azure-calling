@@ -5,21 +5,24 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.VideoView;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.uimanager.SimpleViewManager;
+import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.annotations.ReactProp;
 
-public class RemoteVideoViewManager extends SimpleViewManager<View> {
+public class RemoteVideoViewManager extends ViewGroupManager<VideoStreamView> {
   public static final String REACT_CLASS = "RemoteVideoView";
 
-  private static View view = null;
-
-  public static View GetView()
+  private ReactApplicationContext applicationContext;
+  private static VideoStreamView view = null;
+  
+  public static VideoStreamView GetView()
   {
     return view;
   }
 
   public RemoteVideoViewManager(ReactApplicationContext context) {
+    super();
+    this.applicationContext = context;
   }
 
   @Override
@@ -28,10 +31,14 @@ public class RemoteVideoViewManager extends SimpleViewManager<View> {
   }
 
   @Override
-  protected View createViewInstance(ThemedReactContext context)
+  protected VideoStreamView createViewInstance(ThemedReactContext context)
   {
-      view = new LinearLayout(context);
-      view.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-      return view;
+    view = new VideoStreamView(context, applicationContext);
+    return view;
+  }
+
+  @Override
+  public boolean needsCustomLayoutForChildren() {
+      return true;
   }
 }

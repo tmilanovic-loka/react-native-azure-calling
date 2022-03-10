@@ -32,25 +32,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java9.util.concurrent.CompletableFuture;
 import java.util.UUID;
 
 public class AzureCallingModule extends ReactContextBaseJavaModule {
-
   private enum CameraType {
     FRONT,
     BACK
   }
-  final boolean TestLocalCustomVideo = false;
 
   private CallClient callClient = null;
   private CallAgent callAgent = null;
   private Call call = null;
+  private IncomingCall incomingCall;
   private LocalVideoStream localVideoStream = null;
   private VideoStreamRenderer previewRenderer;
-  private CustomLocalVideoStream customLocalVideoStream = null;
+  private VideoStreamRenderer remoteRenderer;
   private CompletableFuture<DeviceManager> deviceManagerCompletableFuture;
-  private Map<CameraType, VideoDeviceInfo> availableCameras;  
+  private Map<CameraType, VideoDeviceInfo> availableCameras;
   
   PropertyChangedListener callStateChangeListener = new PropertyChangedListener() {
     @Override
@@ -82,13 +82,20 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
   };
 
   RemoteVideoStreamsUpdatedListener remoteVideoStreamsUpdatedListener = new RemoteVideoStreamsUpdatedListener() {
-
     @Override
     public void onRemoteVideoStreamsUpdated(RemoteVideoStreamsEvent event) {
-      List<RemoteVideoStream> remoteStreams = event.getAddedRemoteVideoStreams();
-      for (RemoteVideoStream remoteStream : remoteStreams) {
+      List<RemoteVideoStream> addedRemoteStreams = event.getAddedRemoteVideoStreams();
+      for (RemoteVideoStream remoteStream : addedRemoteStreams) {
         if (remoteStream.isAvailable()) {
           addRemoteVideoStream(remoteStream);
+          break;
+        }
+      }
+
+      List<RemoteVideoStream> removedRemoteStreams = event.getRemovedRemoteVideoStreams();
+      for (RemoteVideoStream remoteStream : removedRemoteStreams) {
+        if (remoteStream.isAvailable()) {
+          removeRemoteVideoStream(remoteStream);
           break;
         }
       }
@@ -120,9 +127,6 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
 
       final List<VideoDeviceInfo> initialCameras = deviceManager.getCameras();
       addVideoDevices(initialCameras);
-      if (TestLocalCustomVideo) {
-        customLocalVideoStream = new CustomLocalVideoStream(getContext(), deviceManager);        
-      }
     });
   }
 
@@ -165,7 +169,7 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
           previewRenderer = null;
         }
         previewRenderer = new VideoStreamRenderer(localVideoStream, getContext());
-        LocalVideoView parentView = (LocalVideoView) LocalVideoViewManager.GetView();
+        VideoStreamView parentView = (VideoStreamView) LocalVideoViewManager.GetView();
         parentView.removeAllViews();
         parentView.addView(previewRenderer.createView(new CreateViewOptions(ScalingMode.CROP)));
         Log.i("Native/VideoEvent", "Added localVideoStream");
@@ -175,11 +179,40 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
 
   private void addRemoteVideoStream(RemoteVideoStream remoteStream) {    
     UiThreadUtil.runOnUiThread(() -> {
-      // VideoStreamRenderer renderer = new VideoStreamRenderer(remoteStream, getContext());
-      // LinearLayout parentView = (LinearLayout) RemoteVideoViewManager.GetView();
-      // parentView.addView(renderer.createView(new CreateViewOptions(ScalingMode.CROP)));
+      if (remoteRenderer != null) {
+        remoteRenderer.dispose();
+        remoteRenderer = null;
+      }
+      remoteRenderer = new VideoStreamRenderer(remoteStream, getContext());
+      VideoStreamView parentView = (VideoStreamView) RemoteVideoViewManager.GetView();
+      parentView.removeAllViews();
+      parentView.addView(remoteRenderer.createView(new CreateViewOptions(ScalingMode.CROP)));
       Log.i("Native/VideoEvent", "Added remoteVideoStream");
     });
+  }
+
+  private void removeRemoteVideoStream(RemoteVideoStream remoteStream) {    
+    UiThreadUtil.runOnUiThread(() -> {
+      if (remoteRenderer != null) {
+        remoteRenderer.dispose();
+        remoteRenderer = null;
+      }
+      VideoStreamView parentView = (VideoStreamView) RemoteVideoViewManager.GetView();
+      parentView.removeAllViews();
+      Log.i("Native/VideoEvent", "Removed remoteVideoStream");
+    });
+  }
+
+  private void handleIncomingCall() {
+    if (callAgent != null) {
+      callAgent.addOnIncomingCallListener((incomingCall) -> {
+          this.incomingCall = incomingCall;
+          Executors.newCachedThreadPool().submit(this::answerIncomingCall);
+          Log.i("Native/VideoEvent", "Incoming call");
+      });
+
+      Log.i("Native/VideoEvent", "Added incomingCallListener");
+    }
   }
 
   @ReactMethod
@@ -192,6 +225,7 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
       }
       if (callAgent == null) {
         callAgent = callClient.createCallAgent(context, credential).get();
+        handleIncomingCall();
       }
 
       deviceManagerCompletableFuture = new CompletableFuture<>();
@@ -222,18 +256,11 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
     
       StartCallOptions callOptions = new StartCallOptions();
 
-      if (customLocalVideoStream != null ) {
-        final VideoOptions localVideoOptions = customLocalVideoStream.getVideoOptions();
-        final List<LocalVideoStream> localVideoStreams = localVideoOptions.getLocalVideoStreams();
-        localVideoStream = localVideoStreams.get(0);
-        callOptions.setVideoOptions(localVideoOptions);
-      } else {
-        final VideoDeviceInfo desiredCamera = getBackCamera();
-        localVideoStream = new LocalVideoStream(desiredCamera, getContext());
-        final LocalVideoStream[] localVideoStreams = new LocalVideoStream[1];
-        localVideoStreams[0] = localVideoStream;
-        callOptions.setVideoOptions(new VideoOptions(localVideoStreams));
-      }
+      final VideoDeviceInfo desiredCamera = getBackCamera();
+      localVideoStream = new LocalVideoStream(desiredCamera, getContext());
+      final LocalVideoStream[] localVideoStreams = new LocalVideoStream[1];
+      localVideoStreams[0] = localVideoStream;
+      callOptions.setVideoOptions(new VideoOptions(localVideoStreams));
 
       call = callAgent.startCall(getContext(), participants, callOptions);
       call.addOnStateChangedListener(callStateChangeListener);
@@ -248,6 +275,39 @@ public class AzureCallingModule extends ReactContextBaseJavaModule {
 
       promise.resolve(call.getId());
     });
+  }
+
+  private void answerIncomingCall() {
+    if (incomingCall == null) {
+        return;
+    }
+    AcceptCallOptions acceptCallOptions = new AcceptCallOptions();
+
+    initializeCameras();
+
+    final VideoDeviceInfo desiredCamera = getBackCamera();
+    localVideoStream = new LocalVideoStream(desiredCamera, getContext());
+    final LocalVideoStream[] localVideoStreams = new LocalVideoStream[1];
+    localVideoStreams[0] = localVideoStream;
+    VideoOptions videoOptions = new VideoOptions(localVideoStreams);
+    acceptCallOptions.setVideoOptions(videoOptions);
+    try {
+        call = incomingCall.accept(getContext(), acceptCallOptions).get();
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    } catch (ExecutionException e) {
+        e.printStackTrace();
+    }
+
+    call.addOnStateChangedListener(callStateChangeListener);
+    call.addOnRemoteParticipantsUpdatedListener(participantsUpdatedListener);
+
+    List<RemoteParticipant> remoteParticipants = call.getRemoteParticipants();
+    for (RemoteParticipant remoteParticipant : remoteParticipants) {        
+      remoteParticipant.addOnVideoStreamsUpdatedListener(remoteVideoStreamsUpdatedListener);
+    }
+
+    addLocalVideoStream();
   }
 
   @ReactMethod
